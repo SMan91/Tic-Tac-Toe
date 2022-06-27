@@ -25,8 +25,11 @@ let gameState = {
     [null, null, null],
     [null, null, null],
   ],
+  gameType: "1p",
   currentPlayer: "x",
-  isPlaying: true,
+  isPlaying: false,
+  playerX: "Player X",
+  playerO: "Player O",
   playerXScore: 0,
   playerOScore: 0,
 };
@@ -51,6 +54,14 @@ board.addEventListener("click", function (event) {
     } else {
       switchPlayer();
     }
+  }
+
+  if (
+    gameState.isPlaying &&
+    gameState.gameType === "1p" &&
+    gameState.currentPlayer === "o"
+  ) {
+    npcTurn();
   }
 });
 
@@ -140,12 +151,12 @@ function playerWins() {
   gameState.isPlaying = false;
   if (winningPlayer === "x") {
     gameState.playerXScore += 1;
-    xScore.innerText = `Player X Score: ${gameState.playerXScore}`;
-    gameStatus.innerText = "Player X Wins! Reset to play again.";
+    xScore.innerText = `${gameState.playerX} Score: ${gameState.playerXScore}`;
+    gameStatus.innerText = `${gameState.playerX} wins! Reset to play again.`;
   } else if (winningPlayer === "o") {
     gameState.playerOScore += 1;
-    oScore.innerText = `Player O Score: ${gameState.playerOScore}`;
-    gameStatus.innerText = "Player O Wins! Reset to play again.";
+    oScore.innerText = `${gameState.playerO} Score: ${gameState.playerOScore}`;
+    gameStatus.innerText = `${gameState.playerO} Wins! Reset to play again.`;
   }
 }
 
@@ -155,6 +166,13 @@ let resetButton = document.querySelector(".reset");
 resetButton.addEventListener("click", function (e) {
   resetGame();
 });
+
+function startGame() {
+  xScore.innerText = `${gameState.playerX} Score: ${gameState.playerXScore}`;
+  oScore.innerText = `${gameState.playerO} Score: ${gameState.playerOScore}`;
+  gameState.isPlaying = true;
+  gameStatus.innerText = `Game in progress. Good luck! ${gameState.playerX} first.`;
+}
 
 function resetGame() {
   let cell;
@@ -167,5 +185,123 @@ function resetGame() {
   }
   gameState.currentPlayer = "x";
   gameState.isPlaying = true;
-  gameStatus.innerText = "Game in progress. Good luck! X Plays first.";
+  gameStatus.innerText = `Game in progress. Good luck! ${gameState.playerX} first.`;
+}
+
+///////// Player Button Logic //////////
+let player1Button = document.querySelector(".player1");
+let player2Button = document.querySelector(".player2");
+let footer = document.querySelector("footer");
+let startButton = document.createElement("button");
+startButton.classList.add("startButton");
+startButton.innerText = "Start Game";
+let nameXInput = document.createElement("input");
+let nameOInput = document.createElement("input");
+
+player1Button.addEventListener("click", function (e) {
+  nameXInput.classList.add("p1NameInput");
+  nameXInput.placeholder = "Enter Player 1's Name";
+  footer.appendChild(nameXInput);
+  footer.appendChild(startButton);
+  player1Button.disabled = true;
+  player2Button.disabled = true;
+  gameState.gameType = "1p";
+});
+
+player2Button.addEventListener("click", function (e) {
+  nameXInput.classList.add("p1NameInput");
+  nameXInput.placeholder = "Enter Player 1's Name";
+  nameOInput.classList.add("p2NameInput");
+  nameOInput.placeholder = "Enter Player 2's Name";
+
+  footer.appendChild(nameXInput);
+  footer.appendChild(nameOInput);
+  footer.appendChild(startButton);
+  player2Button.disabled = true;
+  player1Button.disabled = true;
+  gameState.gameType = "2p";
+});
+
+startButton.addEventListener("click", function (e) {
+  if (nameXInput.value === "") {
+    gameState.playerX = "Player X";
+  } else {
+    gameState.playerX = nameXInput.value;
+  }
+
+  if (gameState.gameType === "1p") {
+    gameState.playerO = "Computer";
+  } else if (nameOInput.value === "") {
+    gameState.playerO = "Player O";
+  } else {
+    gameState.playerO = nameOInput.value;
+  }
+  startButton.disabled = true;
+  startGame();
+});
+
+//////// reset players button////////
+let resetPlayersButton = document.querySelector(".resetPlayers");
+resetPlayersButton.addEventListener("click", function (e) {
+  let footerArray = Array.from(footer.childNodes);
+  if (footerArray.includes(nameXInput)) {
+    footer.removeChild(nameXInput);
+  }
+  if (footerArray.includes(nameOInput)) {
+    footer.removeChild(nameOInput);
+  }
+  if (footerArray.includes(startButton)) {
+    footer.removeChild(startButton);
+  }
+
+  resetGame();
+  gameState.playerX = "Player X";
+  gameState.playerO = "Player O";
+
+  xScore.innerText = `${gameState.playerX} Score: ${gameState.playerXScore}`;
+  oScore.innerText = `${gameState.playerO} Score: ${gameState.playerOScore}`;
+
+  gameStatus.innerText = "Choose One Player or Two.";
+
+  player2Button.disabled = false;
+  player1Button.disabled = false;
+  startButton.disabled = false;
+  gameState.playerXScore = 0;
+  gameState.playerOScore = 0;
+
+  gameState.isPlaying = false;
+});
+
+/////// NPC Stuff /////////
+function npcTurn() {
+  let row;
+  let col;
+
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (gameState.isPlaying && gameState.board[i][j] === null) {
+        gameState.board[i][j] = gameState.currentPlayer;
+        renderGame(i, j);
+        row = i;
+        col = j;
+        break;
+      }
+    }
+    if (row > 2) {
+      i = 0;
+    }
+    if (col > 2) {
+      col = 0;
+    }
+    if (gameState.board[row][col] === "o") {
+      break;
+    }
+  }
+  if (checkWin(row, col)) {
+    playerWins();
+  } else if (boardIsFull()) {
+    gameStatus.innerText = "No more moves! Reset to play again.";
+  } else {
+    switchPlayer();
+  }
 }
