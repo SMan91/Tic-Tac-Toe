@@ -1,0 +1,28 @@
+* {
+  font-family: "Courgette", cursive;
+}
+.board {
+  display: grid;
+  grid: repeat(3, 150px) / auto-flow 150px;
+}
+
+.cell {
+  display: flex;
+  background-color: rgb(255, 250, 220);
+  border: solid 5px slategrey;
+  justify-content: center;
+  align-items: center;
+  font-size: 100px;
+}
+
+h1 {
+  font-size: 60px;
+}
+
+p {
+  font-size: 30px;
+}
+
+button {
+  font-size: 30px;
+}
